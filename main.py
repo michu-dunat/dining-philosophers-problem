@@ -7,22 +7,31 @@ import sys
 
 class Fork:
 
-    def __init__(self):
+    def __init__(self, id, stdscr):
         self.owner = False
         self.lock = threading.Lock()
         self.condition = threading.Condition()
         self.state = 'Clean'
+        self.id = id
+        self.stdscr = stdscr
+
+    def __repr__(self):
+        return f'Fork {self.id}'
 
     def pick_up(self, philosopher):
         if self.owner == philosopher:
             with self.lock:
                 self.state = 'Clean'
+                self.stdscr.addstr((int(sys.argv[1]) * 3) + self.id, 0, f'{self} is held by {self.owner}  ')
+                self.stdscr.refresh()
                 return
 
         if self.state == 'Dirty':
             with self.lock:
                 self.state = 'Clean'
                 self.owner = philosopher
+                self.stdscr.addstr((int(sys.argv[1]) * 3) + self.id, 0, f'{self} is held by {self.owner}  ')
+                self.stdscr.refresh()
             return
 
         if self.state == 'Clean':
@@ -32,6 +41,8 @@ class Fork:
                 with self.lock:
                     self.owner = philosopher
                     self.state = 'Clean'
+                    self.stdscr.addstr((int(sys.argv[1]) * 3) + self.id, 0, f'{self} is held by {self.owner}  ')
+                    self.stdscr.refresh()
 
     def put_down(self):
         with self.lock:
@@ -83,7 +94,7 @@ if __name__ == '__main__':
     stdscr = curses.initscr()
 
     number_of_philosophers = int(sys.argv[1])
-    forks = [Fork() for i in range(number_of_philosophers)]
+    forks = [Fork(i, stdscr) for i in range(number_of_philosophers)]
     philosophers = []
 
     for i in range(number_of_philosophers):
